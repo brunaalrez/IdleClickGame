@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using TMPro;
 using UnityEngine;
 
@@ -24,6 +25,7 @@ public class GameManager : MonoBehaviour
     // texto do dinheiro exista para funcionar. Então deve ser iniciado com certeza antes de todos
     private void Awake()
     {
+        AutoSave();
         // Pega o texto de dinheiro que está na tela
         textoDinheiro = GameObject.Find("Canvas").transform.Find("Dinheiro").GetComponent<TextMeshProUGUI>();
     }
@@ -36,4 +38,56 @@ public class GameManager : MonoBehaviour
         textoDinheiro.text = "$ " + GameManager.dinheiro.ToString();
     }
 
+    public void SalvarJogo()
+    {
+        DadosJogo dj = new DadosJogo();
+        dj.dinheiro = dinheiro;
+        dj.clicadores = clicadores;
+        dj.multiplicadores = multiplicadores;
+
+        string json = JsonUtility.ToJson(dj);
+        string nomeArquivo = "save_data.json";
+        string pasta = Application.persistentDataPath;
+        string caminho = pasta + Path.AltDirectorySeparatorChar +nomeArquivo;
+
+        File.WriteAllText(caminho, json);
+    }
+
+    void AutoSave()
+    {
+        SalvarJogo();
+        Invoke("AutoSave", 5);
+    }
+
+    void CarregarJogo()
+    {
+        string nomeArquivo = "save_data.json";
+        string pasta = Application.persistentDataPath;
+        string caminho = pasta + Path.AltDirectorySeparatorChar + nomeArquivo;
+
+        string dados = null;
+        if(File.Exists(caminho))
+        {
+            dados = File.ReadAllText(caminho);
+        }
+
+        DadosJogo dj = JsonUtility.FromJson<DadosJogo>(dados);
+
+        dinheiro = dj.dinheiro;
+        clicadores = dj.clicadores;
+        multiplicadores = dj.multiplicadores;
+
+        // PlayerPrefs.DelelAll();
+        // File.Delete(caminho);
+    }
+
+}
+
+
+
+class DadosJogo
+{
+    public int dinheiro;
+    public int clicadores;
+    public int multiplicadores;
 }
